@@ -10,30 +10,28 @@ const getAddresses = async (req, res) => {
 
 const createAddress = async (req, res) => {
     const { userId } = req.params;
-    const { street, city, state } = req.body;
-    const address = await prisma.address.create({
+    const { address, province } = req.body;
+    const addressData = await prisma.address.create({
         data: {
-            street,
-            city,
-            state,
+            address,
+            province,
             userId: parseInt(userId),
         },
     });
-    res.status(201).json(address);
+    res.status(201).json(addressData);
 };
 
 const updateAddress = async (req, res) => {
     const { id } = req.params;
-    const { street, city, state } = req.body;
-    const address = await prisma.address.update({
+    const { address, province } = req.body;
+    const addressData = await prisma.address.update({
         where: { id: parseInt(id) },
         data: {
-            street,
-            city,
-            state,
+            address,
+            province,
         },
     });
-    res.json(address);
+    res.json(addressData);
 };
 
 const deleteAddress = async (req, res) => {
