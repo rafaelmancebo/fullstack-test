@@ -1,33 +1,38 @@
-import { Button, Description, Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import React, { useRef } from 'react';
 import CustomButton from '../CustomButton';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import Input from '../Input';
-export type Address = {
-    id: number;
-    address: string;
-    province: string;
-    userId: number;
-};
+import { User } from '../../../utils/types';
+import { useAddress } from '@/hooks/useAddress';
+import { useQueryClient } from '@tanstack/react-query';
 
-interface ConfirmProps {
+interface AddNewAddressProps {
     isOpen: boolean;
     setIsOpen: (value: boolean) => void;
+    user: User;
 }
 type Inputs = {
     address: string;
     province: string;
-    item?: Address;
 };
-const AddNewAddress = ({ isOpen, setIsOpen }: ConfirmProps) => {
+const AddNewAddress = ({ isOpen, setIsOpen, user }: AddNewAddressProps) => {
     const form = useRef<HTMLFormElement>(null);
+    const queryClient = useQueryClient();
+    const { newAddress } = useAddress({
+        onSuccessNewAddress: () => {
+            setIsOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['get-client'] });
+        },
+    });
     const {
         register,
         handleSubmit,
-        watch,
         formState: { errors },
     } = useForm<Inputs>();
-    const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
+    const onSubmit: SubmitHandler<Inputs> = (data) => {
+        newAddress.mutate({ address: data.address, province: data.province, user: user.id });
+    };
     return (
         <>
             <Dialog

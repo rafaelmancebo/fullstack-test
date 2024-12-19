@@ -1,8 +1,10 @@
-import { Button } from '@headlessui/react';
 import React from 'react';
 import CustomButton from '../CustomButton';
 import AddressItem from '../AddressItem';
 import Confirm from '../Confirm';
+import { User } from '../../../utils/types';
+import { useAddress } from '@/hooks/useAddress';
+import { useQueryClient } from '@tanstack/react-query';
 
 export type Address = {
     id: number;
@@ -16,21 +18,19 @@ interface ClientItemProps {
     name: string;
     email: string;
     addresses: Address[];
-    onDelete: (id: number) => void;
-    onEdit: (id: number) => void;
-    onViewAddress: (id: number) => void;
+    onDelete: (user: User) => void;
+    onNewAddress: (user: User) => void;
 }
 
-const ClientItem = ({
-    id,
-    name,
-    email,
-    addresses,
-    onDelete,
-    onEdit,
-    onViewAddress,
-}: ClientItemProps) => {
+const ClientItem = ({ id, name, email, addresses, onDelete, onNewAddress }: ClientItemProps) => {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [currentAddress, setCurrentAddress] = React.useState<number | null>(null);
+    const queryClient = useQueryClient();
+    const { deleteAddress } = useAddress({
+        onSuccessDeleteAddress: () => {
+            queryClient.invalidateQueries({ queryKey: ['get-client'] });
+        },
+    });
     return (
         <>
             <li className='my-2 border-b pb-2'>
@@ -45,51 +45,50 @@ const ClientItem = ({
                             <div className='font-bold text-sm'>{email}</div>
                         </div>
                     </div>
-                    <div className='flex-1 flex gap-4'>
+                    <div className='flex-1 flex justify-end gap-4'>
                         <CustomButton
                             label={'Delete'}
                             onClick={() => {
-                                onDelete(id);
+                                onDelete({ id, name, email, Address: addresses });
                             }}
                             color={'red'}
                         />
-                        {addresses ? (
-                            <CustomButton
-                                label={'Addresses'}
-                                onClick={() => {
-                                    onViewAddress(id);
-                                }}
-                                color={'blue'}
-                            />
-                        ) : null}
 
                         <CustomButton
                             label={'New address'}
                             onClick={() => {
-                                onViewAddress(id);
+                                onNewAddress({ id, name, email, Address: addresses });
                             }}
                             color={'green'}
                         />
                     </div>
                 </div>
-                {addresses.map((address) => {
-                    return (
-                        <AddressItem
-                            id={address.id}
-                            address={address.address}
-                            province={address.province}
-                            onDelete={function (id: number): void {
-                                throw new Error('Function not implemented.');
-                            }}
-                        />
-                    );
-                })}
+                {addresses && addresses.length > 0 ? (
+                    <div className='my-2 p-2 border bg-gray-100 rounded-lg'>
+                        {addresses.map((address) => {
+                            return (
+                                <AddressItem
+                                    key={address.id}
+                                    id={address.id}
+                                    address={address.address}
+                                    province={address.province}
+                                    onDelete={function (id: number): void {
+                                        setCurrentAddress(id);
+                                        setIsOpen(true);
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
+                ) : null}
                 <Confirm
                     title='Are you sure that you want to delete the address?'
                     isOpen={isOpen}
                     setIsOpen={setIsOpen}
                     onYes={() => {
-                        console.log('Yes');
+                        if (currentAddress) {
+                            deleteAddress.mutate({ id: currentAddress });
+                        }
                         setIsOpen(false);
                     }}
                 />

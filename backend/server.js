@@ -8,16 +8,15 @@ const cors = require('cors');
 dotenv.config();
 
 const app = express();
+app.use(cors());
+app.options('*', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.send('ok');
+});
+
 app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/addresses', addressRoutes);
-
-app.use(
-    cors({
-        origin: '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    }),
-);
 
 const startServer = async () => {
     try {
