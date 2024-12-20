@@ -1,3 +1,11 @@
+## Prerequisites
+
+-   Node.js (v16 o superior)
+-   Docker (para facilitar la configuración de la base de datos)
+-   Docker Compose (si usas Docker)
+-   PostgreSQL (si no usas Docker)
+-   Git (si deseas clonar el repositorio)
+
 ## Running Both Apps
 
 To run both the frontend and backend applications, follow these steps:
@@ -49,4 +57,16 @@ To run both the frontend and backend applications, follow these steps:
     npm run dev
     ```
 
+## note
+
+Add the .env file to the root of the frontend folder, and this will be the content
+
+    ```sh
+    NEXT_PUBLIC_BACKEND_URL="http://localhost:3001"
+    ```
+
 Both applications should now be running. The backend server will typically be available at `http://localhost:3001` and the frontend application at `http://localhost:3000/`.
+
+```
+
+```
